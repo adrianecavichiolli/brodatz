@@ -3,6 +3,7 @@ import cv2
 import pandas as pd
 import keras
 import os
+from matplotlib import pyplot as plt
 
 
 def process_file(path):
@@ -61,6 +62,47 @@ def process_file_some_classes(path, classes):
     return x, y, num_classes
 
 
+def read_some_classes(path, classes):
+    df = pd.read_csv(path)
+
+    x = np.array(df[df.columns[0]])
+    y = np.array(df[df.columns[1]])
+    y -= np.min(y)
+
+    mask = np.in1d(y, classes)
+    x = np.array([cv2.imread(filename, cv2.IMREAD_GRAYSCALE) for filename in x[mask]])
+    y = y[mask]
+
+    num_classes = len(np.unique(y))
+    assert num_classes == len(classes), 'Error during file reading'
+
+    return x, y, num_classes
+
+
+def read_train_test_sets(train_filename, test_filenames, classes_range):
+    X_train, y_train, num_classes = read_some_classes(train_filename, classes_range)
+
+    X_train = X_train.astype('float') / 255
+    X_mean = np.mean(X_train, axis=0)
+    X_train -= X_mean
+
+    y_train = keras.utils.to_categorical(y_train, num_classes=num_classes)
+    X_train = X_train[..., np.newaxis]
+
+    test_list = [list(read_some_classes(test_filename, classes_range)) for test_filename in test_filenames]
+    for test in test_list:
+        test[0] = test[0].astype('float') / 255
+        test[0] -= X_mean
+        test[0] = test[0][..., np.newaxis]
+        test[1] = keras.utils.to_categorical(test[1], num_classes=num_classes)
+
+    num_test = round(len(test_list[0][0]) * 0.8)
+    X_val = test_list[0][0][num_test:]
+    y_val = test_list[0][1][num_test:]
+
+    return X_train, y_train, num_classes, X_val, y_val, test_list
+
+
 def save_model(path, filename, model):
     path = '/media/stanislau/82db778e-0496-450c-9b25-d1e50a90e476/data/data4stas/brodaz'
     current_dir = os.getcwd()
@@ -76,3 +118,28 @@ def save_model(path, filename, model):
     df.to_csv(output_filename, index=False)
 
     os.chdir(current_dir)
+
+
+def save_history(loss_filename, accuracy_filename, history):
+    acc = history.history['acc']
+    val_acc = history.history.get('val_acc')
+    loss = history.history['loss']
+    val_loss = history.history.get('val_loss')
+
+    epochs = range(1, len(loss) + 1)
+
+    plt.clf()
+    plt.plot(epochs, loss)
+    if val_loss is not None:
+        plt.plot(epochs, val_loss)
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.savefig(loss_filename)
+    plt.clf()
+
+    plt.plot(epochs, acc)
+    if val_acc is not None:
+        plt.plot(epochs, val_acc)
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.savefig(accuracy_filename)

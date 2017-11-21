@@ -1,0 +1,1 @@
+{"config": {"momentum": 0.8999999761581421, "decay": 9.999999974752427e-07, "nesterov": true, "lr": 0.004999999888241291}, "class_name": "SGD"}

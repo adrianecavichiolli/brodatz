@@ -3,6 +3,12 @@ import numpy as np
 import itertools
 
 
+def plot_image(X):
+    low, high = np.min(X), np.max(X)
+    plt.imshow(255.0 * (X - low) / (high - low), cmap=plt.cm.gray)
+    plt.show()
+
+
 def plot(x):
     plt.imshow(x.reshape(x.shape[:-1]), cmap=plt.cm.gray)
     plt.show()
@@ -56,3 +62,16 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+
+
+def plot_inputs(image_list):
+    cols = 5
+    rows = 5
+
+    fig, ax = plt.subplots(rows, cols, figsize=(15, 15))
+    for i in range(rows):
+        for j in range(cols):
+            x = image_list[j][i]
+            ax[i][j].imshow(x.reshape(x.shape[:-1]), cmap=plt.cm.gray)
+    plt.setp(ax, xticks=[], yticks=[])
+    plt.show()
