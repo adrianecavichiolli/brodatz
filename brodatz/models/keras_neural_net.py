@@ -40,6 +40,39 @@ class KerasNeuralNetwork(object):
 
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
 
+    def compile_model_9(self):
+        self.model.add(
+            Conv2D(32, (7, 7), kernel_regularizer=self.regularizer, activation=self.activation, input_shape=self.input_shape))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Flatten())
+        self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
+    def compile_model_8(self):
+        self.model.add(
+            Conv2D(32, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation, input_shape=self.input_shape))
+        self.model.add(Conv2D(32, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Flatten())
+        self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
     def compile_model_7(self):
         self.model.add(
             Conv2D(64, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation, input_shape=self.input_shape))
