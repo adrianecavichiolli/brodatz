@@ -79,6 +79,32 @@ def read_some_classes(path, classes):
     return x, y, num_classes
 
 
+def read_train_test_sets_2(train_filename, test_filenames, classes_range):
+    X_train, y_train, num_classes = read_some_classes(train_filename, classes_range)
+
+    X_train = X_train.astype('float') / 255
+    X_mean = np.mean(X_train, axis=0)
+    X_std = np.std(X_train, axis=0)
+    X_train = (X_train - X_mean) / X_std
+
+    y_train = keras.utils.to_categorical(y_train, num_classes=num_classes)
+    X_train = X_train[..., np.newaxis]
+
+    test_list = [list(read_some_classes(test_filename, classes_range)) for test_filename in test_filenames]
+    for test in test_list:
+        test[0] = test[0].astype('float') / 255
+        test[0] = (test[0] - X_mean) / X_std
+        test[0] = test[0][..., np.newaxis]
+        test[1] = keras.utils.to_categorical(test[1], num_classes=num_classes)
+
+    num_test = round(len(test_list[0][0]) * 0.8)
+    X_val = test_list[0][0][num_test:]
+    y_val = test_list[0][1][num_test:]
+
+    return X_train, y_train, num_classes, X_val, y_val, test_list
+
+
+
 def read_train_test_sets(train_filename, test_filenames, classes_range):
     X_train, y_train, num_classes = read_some_classes(train_filename, classes_range)
 
@@ -103,7 +129,7 @@ def read_train_test_sets(train_filename, test_filenames, classes_range):
     return X_train, y_train, num_classes, X_val, y_val, test_list
 
 
-def save_model(path, filename, model):
+def save_model(model, path, filename):
     path = '/media/stanislau/82db778e-0496-450c-9b25-d1e50a90e476/data/data4stas/brodaz'
     current_dir = os.getcwd()
     os.chdir(path)

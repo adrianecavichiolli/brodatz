@@ -1,11 +1,12 @@
 from keras import regularizers
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Conv2D, MaxPooling2D, Cropping2D
 from keras.layers import Activation, BatchNormalization
 from keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import multi_gpu_model
+from keras.layers import Merge, Concatenate
 
 import numpy as np
 
@@ -39,6 +40,87 @@ class KerasNeuralNetwork(object):
         self.model = multi_gpu_model(self.model, gpus=2)
 
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
+    def compile_model_11(self):
+        self.model.add(
+            Conv2D(128, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation, input_shape=self.input_shape))
+        self.model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(256, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(512, (3, 3), kernel_regularizer=self.regularizer, activation=self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Flatten())
+        self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
+
+    def compile_model_10(self):
+        shift_model = Sequential()
+        shift_model.add(Conv2D(32, (5, 5), kernel_regularizer=self.regularizer, input_shape=self.input_shape))
+        shift_model.add(Activation(self.activation))
+        shift_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        shift_model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer))
+        shift_model.add(Activation(self.activation))
+        shift_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        shift_model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer))
+        shift_model.add(Activation(self.activation))
+        shift_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        zoom_in_model = Sequential()
+        zoom_in_model.add(Conv2D(32, (5, 5), kernel_regularizer=self.regularizer, input_shape=self.input_shape))
+        zoom_in_model.add(Activation(self.activation))
+        zoom_in_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        zoom_in_model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer))
+        zoom_in_model.add(Activation(self.activation))
+        zoom_in_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        zoom_in_model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer))
+        zoom_in_model.add(Activation(self.activation))
+        zoom_in_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        zoom_out_model = Sequential()
+        zoom_out_model.add(Conv2D(32, (5, 5), kernel_regularizer=self.regularizer, input_shape=self.input_shape))
+        zoom_out_model.add(Activation(self.activation))
+        zoom_out_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        zoom_out_model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer))
+        zoom_out_model.add(Activation(self.activation))
+        zoom_out_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        zoom_out_model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer))
+        zoom_out_model.add(Activation(self.activation))
+        zoom_out_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        rotation_model = Sequential()
+        rotation_model.add(Conv2D(32, (5, 5), kernel_regularizer=self.regularizer, input_shape=self.input_shape))
+        rotation_model.add(Activation(self.activation))
+        rotation_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        rotation_model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer))
+        rotation_model.add(Activation(self.activation))
+        rotation_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        rotation_model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer))
+        rotation_model.add(Activation(self.activation))
+        rotation_model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        merged = Merge([shift_model, zoom_in_model, zoom_out_model, rotation_model])
+
+        self.model.add(merged)
+
+        self.model.add(Flatten())
+        self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
 
     def compile_model_9(self):
         self.model.add(
@@ -143,6 +225,90 @@ class KerasNeuralNetwork(object):
 
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
 
+    def compile_model_3_4(self):
+        self.model.add(
+            Conv2D(32, (3, 3), kernel_regularizer=self.regularizer, input_shape=self.input_shape))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Flatten())
+        self.model.add(Dropout(0.5))
+        self.model.add(Dense(384))
+        # self.model.add(Dropout(0.5))
+        self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
+
+    def compile_model_3_3(self):
+        self.model.add(
+            Conv2D(32, (3, 3), kernel_regularizer=self.regularizer, input_shape=self.input_shape))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Flatten())
+        self.model.add(Dropout(0.5))
+        self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
+
+    def compile_model_3_2(self):
+        self.model.add(Cropping2D(cropping=35, input_shape=self.input_shape))
+        self.model.add(
+            Conv2D(32, (5, 5), kernel_regularizer=self.regularizer))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Flatten())
+        self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
+    def compile_model_3_1(self):
+        self.model.add(
+            Conv2D(32, (5, 5), kernel_regularizer=self.regularizer, input_shape=self.input_shape, padding='same',
+                   strides=1))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(64, (3, 3), kernel_regularizer=self.regularizer, padding='same'))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Conv2D(128, (3, 3), kernel_regularizer=self.regularizer, padding='same'))
+        self.model.add(Activation(self.activation))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+
+        self.model.add(Flatten())
+        self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
     def compile_model_3(self):
         self.model.add(
             Conv2D(32, (5, 5), kernel_regularizer=self.regularizer, input_shape=self.input_shape))
@@ -203,7 +369,7 @@ class KerasNeuralNetwork(object):
 
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
 
-    def train(self, datagen, X, y, validation_data=None, batch_size=64, epochs=3000):
+    def train(self, datagen, X, y, validation_data=None, batch_size=64, epochs=3000, callbacks=None):
         # datagen = ImageDataGenerator(
         #     rotation_range=np.pi / 4,
         #     shear_range=np.pi / 5,
@@ -215,11 +381,11 @@ class KerasNeuralNetwork(object):
         #     fill_mode='nearest')
 
         return self.model.fit_generator(datagen.flow(X, y, batch_size=batch_size), validation_data=validation_data,
-                                        steps_per_epoch=len(X) / batch_size, epochs=epochs,
-                                        # use_multiprocessing=True, workers=4
+                                        steps_per_epoch=len(X) / batch_size, epochs=epochs, callbacks=callbacks,
+                                        use_multiprocessing=True, workers=3, max_queue_size=30
                                         )
 
-    def train_generator(self, generator, steps_per_epoch, validation_data=None, epochs=3000):
+    def train_generator(self, generator, steps_per_epoch, validation_data=None, epochs=3000, callbacks=None):
         # datagen = ImageDataGenerator(
         #     rotation_range=np.pi / 4,
         #     shear_range=np.pi / 5,
@@ -232,11 +398,14 @@ class KerasNeuralNetwork(object):
 
         return self.model.fit_generator(generator, validation_data=validation_data,
                                         steps_per_epoch=steps_per_epoch, epochs=epochs,
-                                        # use_multiprocessing=True, workers=4
-                                        )
+                                        max_queue_size=100, callbacks=callbacks)
 
     def predict(self, X, batch_size=64):
         y = self.model.predict(X, batch_size=batch_size)
+        return y
+
+    def predict_classes(self, X, batch_size=64):
+        y = self.model.predict_classes(X, batch_size=batch_size) + 1
         return y
 
     def accuracy(self, X, y):

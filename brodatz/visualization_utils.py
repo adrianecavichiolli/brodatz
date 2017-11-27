@@ -73,5 +73,6 @@ def plot_inputs(image_list):
         for j in range(cols):
             x = image_list[j][i]
             ax[i][j].imshow(x.reshape(x.shape[:-1]), cmap=plt.cm.gray)
-    plt.setp(ax, xticks=[], yticks=[])
+    # plt.setp(ax, xticks=[], yticks=[])
+    plt.setp(ax, xticks=[])
     plt.show()
