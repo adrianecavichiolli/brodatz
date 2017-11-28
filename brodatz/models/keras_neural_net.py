@@ -1,5 +1,5 @@
-from keras import regularizers
-from keras.models import Sequential
+from keras import regularizers, applications
+from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D, Cropping2D
 from keras.layers import Activation, BatchNormalization
@@ -38,6 +38,34 @@ class KerasNeuralNetwork(object):
         self.model.add(Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax'), )
 
         self.model = multi_gpu_model(self.model, gpus=2)
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
+    def compile_model_finetuning_2(self):
+        initial_model = applications.VGG16(include_top=False, weights='imagenet', input_shape=self.input_shape)
+
+        for layer in initial_model.layers:
+            layer.trainable = False
+
+        x = Flatten()(initial_model.output)
+        x = Dense(512, activation=self.activation)(x)
+        preds = Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax')(x)
+
+        self.model = Model(initial_model.input, preds)
+
+        self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
+
+    def compile_model_finetuning(self):
+        initial_model = applications.VGG16(include_top=False, weights='imagenet', input_shape=self.input_shape)
+
+        for layer in initial_model.layers:
+            layer.trainable = False
+
+        x = Flatten()(initial_model.output)
+        x = Dense(256, activation=self.activation)(x)
+        preds = Dense(self.num_classes, kernel_regularizer=self.regularizer, activation='softmax')(x)
+
+        self.model = Model(initial_model.input, preds)
 
         self.model.compile(loss='categorical_crossentropy', optimizer=self.optimizer, metrics=['accuracy'])
 

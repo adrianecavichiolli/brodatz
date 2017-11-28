@@ -5,7 +5,7 @@ import json
 
 import pandas as pd
 
-from keras import regularizers, optimizers, utils
+from keras import regularizers, optimizers, utils, applications
 
 from brodatz.data_utils import save_history
 
@@ -104,6 +104,19 @@ def base_try_args(X_train, y_train, num_classes, test_list, net, optimizer, hist
     if save_results:
         save_predict_results(net, test_list[0][0])
 
+def try_args_fit(X_train, y_train, num_classes, X_val, y_val, test_list, net, optimizer, callbacks, rotation_range,
+             shear_range, shift_range, horizontal_flip, vertical_flip, zoom_range, fill_mode, batch_size, epochs, learning_rate,
+             regularization_strength, save_model=False, save_results=False):
+    train_start = datetime.datetime.now()
+    history = net.model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=epochs, batch_size=batch_size,
+                              callbacks=callbacks)
+    train_finish = datetime.datetime.now()
+    train_duration = (train_finish - train_start).seconds
+
+    base_try_args(X_train, y_train, num_classes, test_list, net, optimizer, history, train_duration, rotation_range,
+                  shear_range, shift_range, horizontal_flip, vertical_flip, zoom_range, fill_mode, batch_size, epochs,
+                  learning_rate, regularization_strength, save_model, save_results)
+
 
 def try_args(X_train, y_train, num_classes, X_val, y_val, test_list, net, optimizer, datagen, callbacks, rotation_range,
              shear_range, shift_range, horizontal_flip, vertical_flip, zoom_range, fill_mode, batch_size, epochs, learning_rate,
@@ -132,3 +145,13 @@ def try_args_generator(X_train, y_train, num_classes, X_val, y_val, test_list, n
     base_try_args(X_train, y_train, num_classes, test_list, net, optimizer, history, train_duration, rotation_range,
                   shear_range, shift_range, horizontal_flip, vertical_flip, zoom_range, fill_mode, batch_size, epochs,
                   learning_rate, regularization_strength, save_model, save_results)
+
+
+def get_bottlebeck_features(train_generator, val_generator, batch_size, nb_train_samples, nb_validation_samples):
+    # build the VGG16 network
+    model = applications.VGG16(include_top=False, weights='imagenet')
+
+    bottleneck_features_train = model.predict_generator(train_generator, nb_train_samples // batch_size)
+    bottleneck_features_validation = model.predict_generator(val_generator, nb_validation_samples // batch_size)
+
+    return bottleneck_features_train, bottleneck_features_validation

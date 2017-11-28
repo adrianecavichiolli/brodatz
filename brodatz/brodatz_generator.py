@@ -38,6 +38,28 @@ rotation_generator = ImageDataGenerator(
     fill_mode='reflect')
 
 
+def brodatz_generator_3_channels(X, y, batch_size=64):
+    generator_batch_size = batch_size // 4
+    shift = shift_generator.flow(X, y, batch_size=generator_batch_size)
+    zoom_in = zoom_in_generator.flow(X, y, batch_size=generator_batch_size)
+    zoom_out = zoom_out_generator.flow(X, y, batch_size=generator_batch_size)
+    rotation = rotation_generator.flow(X, y, batch_size=generator_batch_size)
+
+    while True:
+        X_shift, y_shift = shift.next()
+        X_zoom_in, y_zoom_in = zoom_in.next()
+        X_zoom_out, y_zoom_out = zoom_out.next()
+        X_rotation, y_rotation = rotation.next()
+
+        X_b = np.concatenate((X_shift, X_zoom_in, X_zoom_out, X_rotation))
+        y_b = np.concatenate((y_shift, y_zoom_in, y_zoom_out, y_rotation))
+
+        mask = np.random.permutation(len(X_b))
+        X_b = X_b[mask]
+        y_b = y_b[mask]
+
+        yield np.vstack((X_b.T,) * 3).T, y_b
+
 def brodatz_generator(X, y, batch_size=64):
     generator_batch_size = batch_size // 4
     shift = shift_generator.flow(X, y, batch_size=generator_batch_size)
@@ -45,18 +67,11 @@ def brodatz_generator(X, y, batch_size=64):
     zoom_out = zoom_out_generator.flow(X, y, batch_size=generator_batch_size)
     rotation = rotation_generator.flow(X, y, batch_size=generator_batch_size)
 
-    additional_zoom_in = False
-    i = 0
     while True:
-        # X_shift, y_shift = shift.next() if additional_zoom_in else zoom_in.next()  # Alternate between shift and zoom in
-        # additional_zoom_in = not additional_zoom_in
-
         X_shift, y_shift = shift.next()
         X_zoom_in, y_zoom_in = zoom_in.next()
         X_zoom_out, y_zoom_out = zoom_out.next()
         X_rotation, y_rotation = rotation.next()
-
-        # yield [X_shift, X_zoom_in, X_zoom_out, X_rotation], y_shift
 
         X_b = np.concatenate((X_shift, X_zoom_in, X_zoom_out, X_rotation))
         y_b = np.concatenate((y_shift, y_zoom_in, y_zoom_out, y_rotation))
